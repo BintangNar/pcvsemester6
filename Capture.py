@@ -3,21 +3,15 @@ import numpy as np
 from collections import deque
 import Processing as proc
 
-# ---------------------------------------------------------------------------
 # Config
-# ---------------------------------------------------------------------------
 SMOOTH_WINDOW  = 5
 POSITION_ALPHA = 0.35
 
-# ---------------------------------------------------------------------------
 # Internal state
-# ---------------------------------------------------------------------------
 _right_history   = deque(maxlen=SMOOTH_WINDOW)
 _left_pos_smooth = None
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 def smooth_count(history, new_value):
     history.append(new_value)
     return max(set(history), key=history.count)
@@ -36,9 +30,7 @@ def smooth_position(new_pos):
         _left_pos_smooth = (ax, ay)
     return _left_pos_smooth
 
-# ---------------------------------------------------------------------------
 # Contour selection
-# ---------------------------------------------------------------------------
 def get_best_contour(img, roi_offset_x, roi_offset_y):
     contours, _ = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     if not contours:
@@ -64,9 +56,7 @@ def get_best_contour(img, roi_offset_x, roi_offset_y):
         }
     return None
 
-# ---------------------------------------------------------------------------
 # Finger counting
-# ---------------------------------------------------------------------------
 def count_fingers(contour, hull_indices):
     if hull_indices is None or len(hull_indices) < 3:
         return 0
@@ -87,13 +77,17 @@ def count_fingers(contour, hull_indices):
             continue
         cos_val = np.clip((b**2 + c**2 - a**2) / denom, -1.0, 1.0)
         angle   = np.degrees(np.arccos(cos_val))
-        if angle <= 85 and d / 256.0 > 20:
+        if angle <= 80 and d / 256.0 > 30:
             count += 1
-    return count + 1 if count > 0 else 0
+    if count > 0:
+        return count +1
+    x,y,w,h = cv.boundingRect(contour)
+    aspect = float(h) / w
+    if aspect > 1.5:
+        return 1
+    return 0
 
-# ---------------------------------------------------------------------------
 # Skin mask
-# ---------------------------------------------------------------------------
 def process_roi_mask(roi_frame):
     hsv_roi  = proc.convert_hsv(roi_frame)
     lower1   = np.array([0,  30,  60]);  upper1 = np.array([8,  160, 255])
@@ -104,16 +98,7 @@ def process_roi_mask(roi_frame):
     opened   = proc.dilation(proc.erosion(closed, 3), 3)
     return raw_mask, opened
 
-# ---------------------------------------------------------------------------
-# Public API  –  called once per frame from Game.py
-# ---------------------------------------------------------------------------
 def detect_hands(frame):
-    """
-    Process one BGR frame and return:
-        left_pos    : (cx, cy) floats in frame coords, or None
-        num_fingers : int 0-5, or None
-        debug_info  : dict with bounding boxes / hulls for optional HUD drawing
-    """
     global _left_pos_smooth
 
     f_h, f_w = frame.shape[:2]

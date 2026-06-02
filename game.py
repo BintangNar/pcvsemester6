@@ -262,6 +262,8 @@ def main():
         if debug_info["right_hand"]:
             cv.drawContours(debug_frame, [debug_info["right_hand"]["hull"]], -1, (0,255,255), 2)
         cv.imshow("Contours", debug_frame)
+        combined_mask = np.hstack((debug_info["left_opened"], debug_info["right_opened"]))
+        cv.imshow("Masks (Left | Right)", combined_mask)
 
         # Map left hand position to full frame crosshair
         if left_pos is not None:
@@ -278,7 +280,7 @@ def main():
         # Spell selected = num_fingers (1-5), fallback to last valid
         spell_id = num_fingers if (num_fingers and 1 <= num_fingers <= 5) else 1
 
-        # ── GAME OVER screen ───────────────────────────────────────────
+        # GAME OVER screen 
         if state.game_over:
             draw_game_over(frame, state.score, f_w, f_h)
             cv.imshow("Mage Battle", frame)
@@ -289,16 +291,15 @@ def main():
                 break
             continue
 
-        # ── Darken frame slightly so game elements pop ─────────────────
+        # Darken frame slightly so game elements pop 
         frame = (frame * 0.55).astype(np.uint8)
 
-        # ── Spawn enemies ──────────────────────────────────────────────
+        #Spawn enemies 
         if now - state.last_spawn > SPAWN_INTERVAL:
             state.enemies.append(Enemy(f_w, f_h))
             state.last_spawn = now
 
-        # ── Cast spell: gesture held = fire each CAST_COOLDOWN ─────────
-        # Heal is instant on player; all others fire a projectile
+        # Cast spell: gesture held = fire each CAST_COOLDOWN
         if (num_fingers and 1 <= num_fingers <= 5
                 and now - state.last_cast > CAST_COOLDOWN
                 and len(state.projectiles) < PROJECTILE_LIMIT):
@@ -325,7 +326,7 @@ def main():
 
             state.last_cast = now
 
-        # ── Update enemies ─────────────────────────────────────────────
+        # Update enemies 
         for en in state.enemies[:]:
             en.update()
             if en.y > f_h - ENEMY_REACH:
@@ -338,7 +339,7 @@ def main():
                     state.particles.append(
                         Particle(f_w//2, f_h - 80, (0,60,220), spread=6, life=0.5))
 
-        # ── Update projectiles + collision ────────────────────────────
+        # Update projectiles + collision
         for proj in state.projectiles[:]:
             proj.update()
             # Off-screen
@@ -370,17 +371,16 @@ def main():
             if hit and proj in state.projectiles:
                 state.projectiles.remove(proj)
 
-        # ── Update particles & float texts ────────────────────────────
+        #Update particles & float texts
         state.particles  = [p for p in state.particles  if p.update(dt)]
         state.float_texts= [t for t in state.float_texts if t.update(dt)]
 
-        # ── Check game over ───────────────────────────────────────────
+        #Check game over
         if state.player_hp <= 0:
             state.player_hp = 0
             state.game_over  = True
 
-        # ── Draw everything ───────────────────────────────────────────
-        # Player "mage" icon at bottom centre
+        #Draw everything
         px_icon = f_w // 2
         py_icon = f_h - 60
         cv.circle(frame, (px_icon, py_icon), 22, (60, 60, 180), -1)
@@ -397,7 +397,7 @@ def main():
         draw_hand_debug(frame, debug_info, f_w, f_h)
         draw_hud(frame, state.player_hp, state.score, spell_id, num_fingers, f_w, f_h)
 
-        # ── Spell name flash when casting ─────────────────────────────
+        #Spell name flash when casting
         if now - state.last_cast < 0.25:
             sp  = SPELLS[spell_id]
             cv.putText(frame, sp["name"],

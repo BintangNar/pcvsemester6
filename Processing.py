@@ -35,7 +35,6 @@ def convert_hsv(bgr_array):
 
 
 def mask(image, low, high):
-    """Single-range HSV mask."""
     result = (
         (image[:,:,0] >= low[0]) & (image[:,:,0] <= high[0]) &
         (image[:,:,1] >= low[1]) & (image[:,:,1] <= high[1]) &
@@ -45,7 +44,6 @@ def mask(image, low, high):
 
 
 def mask_dual(image, low1, high1, low2, high2):
-    """Two-range HSV mask, ORed together — needed for red/skin hue wrap-around."""
     m1 = (
         (image[:,:,0] >= low1[0]) & (image[:,:,0] <= high1[0]) &
         (image[:,:,1] >= low1[1]) & (image[:,:,1] <= high1[1]) &
@@ -60,10 +58,6 @@ def mask_dual(image, low1, high1, low2, high2):
 
 
 def _sliding_window_op(image, size, op):
-    """
-    Apply a morphological op (np.max / np.min / np.median) over a square
-    neighbourhood using stride tricks — pure NumPy, no OpenCV pixel ops.
-    """
     img_h, img_w = image.shape[:2]
     pad = size // 2
 
