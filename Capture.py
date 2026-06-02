@@ -133,7 +133,6 @@ def detect_hands(frame):
     left_hand  = get_best_contour(left_opened,  left_roi_x,  left_roi_y)
     right_hand = get_best_contour(right_opened, right_roi_x, right_roi_y)
 
-    # Left → position
     left_pos = None
     if left_hand:
         raw_pos  = get_palm_center(left_hand["bounding_box"])
@@ -141,7 +140,6 @@ def detect_hands(frame):
     else:
         _left_pos_smooth = None
 
-    # Right → finger count
     num_fingers = None
     if right_hand:
         cnt_local   = right_hand["contours"] - np.array([right_roi_x, right_roi_y])

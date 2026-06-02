@@ -5,24 +5,24 @@ import time
 import Capture as cap_module
 
 SPELLS = {
-    1: {"name": "Fireball",      "color": (0,  100, 255), "damage": 35, "speed": 14, "radius": 12, "emoji": "🔥"},
-    2: {"name": "Heal",          "color": (0,  255, 120), "damage": -30,"speed": 0,  "radius": 0,  "emoji": "💚"},  # heals player
-    3: {"name": "Ice Shard",     "color": (255,200,  50), "damage": 25, "speed": 18, "radius": 9,  "emoji": "❄️"},
-    4: {"name": "Thunder",       "color": (0,  255, 255), "damage": 50, "speed": 20, "radius": 10, "emoji": "⚡"},
-    5: {"name": "Void Blast",    "color": (180,  0, 255), "damage": 70, "speed": 10, "radius": 16, "emoji": "💜"},
+    1: {"name": "Fireball",      "color": (0,  100, 255), "damage": 35, "speed": 14, "radius": 12},
+    2: {"name": "Heal",          "color": (0,  255, 120), "damage": -30,"speed": 0,  "radius": 0},  # heals player
+    3: {"name": "Ice Shard",     "color": (255,200,  50), "damage": 25, "speed": 18, "radius": 9},
+    4: {"name": "Thunder",       "color": (0,  255, 255), "damage": 50, "speed": 20, "radius": 10},
+    5: {"name": "Void Blast",    "color": (180,  0, 255), "damage": 70, "speed": 10, "radius": 16},
 }
 
 ENEMY_TYPES = [
     {"name": "Goblin",   "color": (0, 180,  50), "hp": 60,  "speed": 1.2, "damage": 10, "size": 22},
     {"name": "Orc",      "color": (0, 120, 200), "hp": 120, "speed": 0.7, "damage": 20, "size": 30},
-    {"name": "Wraith",   "color": (180,  0, 180),"hp": 80,  "speed": 1.8, "damage": 15, "size": 18},
+    {"name": "Wraith",   "color": (180,  0, 180),"hp": 80,  "speed": 2.0, "damage": 15, "size": 18},
     {"name": "Dragon",   "color": (0,  50, 220), "hp": 200, "speed": 0.5, "damage": 35, "size": 38},
 ]
 
 PLAYER_MAX_HP     = 100
-CAST_COOLDOWN     = 1.00   # seconds between casts
-SPAWN_INTERVAL    = 4.0    # seconds between enemy spawns
-ENEMY_REACH       = 60     # px from bottom — enemy "hits" player
+CAST_COOLDOWN     = 1.00 
+SPAWN_INTERVAL    = 4.0   
+ENEMY_REACH       = 60     
 PROJECTILE_LIMIT  = 20
 CROSSHAIR_COLOR   = (0, 255, 180)
 
@@ -42,7 +42,7 @@ class Particle:
     def update(self, dt):
         self.x   += self.vx
         self.y   += self.vy
-        self.vy  += 0.15          # gravity
+        self.vy  += 0.15          
         self.life -= dt
         return self.life > 0
 
@@ -52,9 +52,7 @@ class Particle:
         r      = max(1, int(self.radius * alpha))
         cv.circle(frame, (int(self.x), int(self.y)), r, col, -1)
 
-# ============================================================
 #  PROJECTILE
-# ============================================================
 class Projectile:
     def __init__(self, x, y, tx, ty, spell_id):
         sp             = SPELLS[spell_id]
@@ -79,9 +77,8 @@ class Projectile:
         # Glow ring
         cv.circle(frame, (int(self.x), int(self.y)), self.radius+3, self.color, 1)
 
-# ============================================================
+
 #  ENEMY
-# ============================================================
 class Enemy:
     _id = 0
     def __init__(self, frame_w, frame_h):
@@ -110,7 +107,7 @@ class Enemy:
         self.hp -= damage
         if self.hp <= 0:
             self.alive = False
-            return True   # killed
+            return True  
         return False
 
     def draw(self, frame):
@@ -129,9 +126,7 @@ class Enemy:
         cv.rectangle(frame, (ix - self.size, iy + self.size + 4),
                              (ix - self.size + filled, iy + self.size + 10), (0,220,80), -1)
 
-# ============================================================
 #  FLOATING TEXT
-# ============================================================
 class FloatText:
     def __init__(self, x, y, text, color):
         self.x, self.y = float(x), float(y)
@@ -150,11 +145,9 @@ class FloatText:
         cv.putText(frame, self.text, (int(self.x), int(self.y)),
                    cv.FONT_HERSHEY_SIMPLEX, 0.6, col, 2)
 
-# ============================================================
 #  HUD DRAWING HELPERS
-# ============================================================
 def draw_hud(frame, player_hp, score, spell_id, num_fingers, frame_w, frame_h):
-    # ── HP bar ─────────────────────────────────────────────
+    #HP bar
     bar_x, bar_y, bar_w, bar_h = 20, 20, 220, 22
     hp_ratio = max(0.0, player_hp / PLAYER_MAX_HP)
     hp_color = (0,220,80) if hp_ratio > 0.5 else (0,180,255) if hp_ratio > 0.25 else (0,60,220)
@@ -164,11 +157,11 @@ def draw_hud(frame, player_hp, score, spell_id, num_fingers, frame_w, frame_h):
     cv.putText(frame, f"HP {int(player_hp)}/{PLAYER_MAX_HP}",
                (bar_x+4, bar_y+16), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
 
-    # ── Score ──────────────────────────────────────────────
+    #Score
     cv.putText(frame, f"Score: {score}", (bar_x, bar_y + 45),
                cv.FONT_HERSHEY_SIMPLEX, 0.65, (255,240,100), 2)
 
-    # ── Spell palette (bottom centre) ─────────────────────
+    #Spell palette (bottom centre)
     palette_y = frame_h - 55
     total_w   = len(SPELLS) * 90
     start_x   = (frame_w - total_w) // 2
@@ -183,11 +176,11 @@ def draw_hud(frame, player_hp, score, spell_id, num_fingers, frame_w, frame_h):
                      (255,255,255) if active else (100,100,100), 2 if active else 1)
         cv.putText(frame, f"{sid}: {sp['name']}", (bx+4, palette_y+16),
                    cv.FONT_HERSHEY_SIMPLEX, 0.38, (255,255,255), 1)
-        finger_dots = "●" * sid
+        finger_dots = "o" * sid
         cv.putText(frame, finger_dots, (bx+4, palette_y+34),
                    cv.FONT_HERSHEY_SIMPLEX, 0.38, (200,200,200), 1)
 
-    # ── Right-hand gesture hint ────────────────────────────
+    # Right-hand gesture hint
     hint = f"Fingers: {num_fingers if num_fingers is not None else '?'}"
     cv.putText(frame, hint, (frame_w - 160, 35),
                cv.FONT_HERSHEY_SIMPLEX, 0.6, (200,200,255), 2)
@@ -204,7 +197,6 @@ def draw_crosshair(frame, cx, cy):
     cv.circle(frame, (cx, cy), 3, col, -1)
 
 def draw_hand_debug(frame, debug_info, f_w, f_h):
-    """Minimal ROI outlines — unobtrusive during gameplay."""
     lx, ly, lw, lh = debug_info["roi"]["left"]
     rx, ry, rw, rh = debug_info["roi"]["right"]
     cv.rectangle(frame, (lx,ly), (lx+lw, ly+lh), (0,180,0), 1)
@@ -222,9 +214,7 @@ def draw_game_over(frame, score, f_w, f_h):
                (f_w//2 - 180, f_h//2 + 80),
                cv.FONT_HERSHEY_SIMPLEX, 0.65, (200,200,200), 1)
 
-# ============================================================
 #  GAME STATE
-# ============================================================
 class GameState:
     def __init__(self):
         self.reset()
@@ -240,9 +230,7 @@ class GameState:
         self.last_spawn   = 0.0
         self.game_over    = False
 
-# ============================================================
 #  MAIN
-# ============================================================
 def main():
     cap = cv.VideoCapture(0)
     if not cap.isOpened():
