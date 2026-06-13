@@ -6,7 +6,7 @@ import Capture as cap_module
 
 SPELLS = {
     1: {"name": "Fireball",      "color": (0,  100, 255), "damage": 35, "speed": 14, "radius": 12},
-    2: {"name": "Heal",          "color": (0,  255, 120), "damage": -30,"speed": 0,  "radius": 0},  # heals player
+    2: {"name": "Heal",          "color": (0,  255, 120), "damage": -30,"speed": 0,  "radius": 0},
     3: {"name": "Ice Shard",     "color": (255,200,  50), "damage": 25, "speed": 18, "radius": 9},
     4: {"name": "Thunder",       "color": (0,  255, 255), "damage": 50, "speed": 20, "radius": 10},
     5: {"name": "Void Blast",    "color": (180,  0, 255), "damage": 70, "speed": 10, "radius": 16},
@@ -251,7 +251,7 @@ def main():
         dt       = now - prev_time
         prev_time = now
 
-        # ── Hand detection ─────────────────────────────────────────────
+        #Hand detection
         left_pos, num_fingers, debug_info = cap_module.detect_hands(frame)
         combined_mask = np.hstack((debug_info["left_opened"], debug_info["right_opened"]))
         cv.imshow("Masks (Left | Right)", combined_mask)
@@ -269,7 +269,7 @@ def main():
         if left_pos is not None:
             roi_lx, roi_ly, roi_lw, roi_lh = debug_info["roi"]["left"]
             # Remap from ROI coords to full frame
-            norm_x = (left_pos[0] - roi_lx) / roi_lw   # 0..1
+            norm_x = (left_pos[0] - roi_lx) / roi_lw   
             norm_y = (left_pos[1] - roi_ly) / roi_lh
             cx = int(np.clip(norm_x * f_w, 0, f_w - 1))
             cy = int(np.clip(norm_y * f_h, 0, f_h - 1))
